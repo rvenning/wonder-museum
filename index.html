@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Wonder Museum 🏛️ — A Word Search With 112 Rooms</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#191727">
+<meta name="description" content="A word search museum with fourteen wings and a hundred and twelve rooms — dinosaurs, Ancient Egypt, space, knights, the deep sea, volcanoes, the human body and more. Every room you clear adds an exhibit to your album, every room hides one extra word that is not on the list, and there is a Daily Puzzle the whole family plays on the same grid.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wonder Museum">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/gk-base.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+</head>
+<body>
+
+<!-- Splash -->
+<div class="screen active" id="screen-splash">
+  <div class="splash-inner">
+    <div class="crest" aria-hidden="true">🏛️</div>
+    <h1 class="logo">WONDER<span>MUSEUM</span></h1>
+    <p class="tagline">Fourteen wings. A hundred and twelve rooms. Find every word on the card — and the one that is not on it.</p>
+    <button class="btn big" id="btn-continue-as" style="display:none"></button>
+    <button class="btn big green" id="btn-start" onclick="App.play()">🎟️ Go In</button>
+    <button class="btn ghost" onclick="App.howTo()">📖 How it works</button>
+    <button class="btn ghost" id="btn-install" style="display:none">📲 Add to Home Screen</button>
+    <p class="keys-hint">🖱️ Drag across a word, or click its first letter then its last</p>
+    <div class="splash-foot">
+      <span id="sync-badge">⏳ connecting…</span>
+      <button class="btn-sound iconbtn">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile picker (roster + PIN modals are rendered by GK.Profiles) -->
+<div class="screen" id="screen-profiles">
+  <header class="topbar">
+    <button class="iconbtn" onclick="App.showScreen('splash')">←</button>
+    <h2 class="grow">Who's visiting?</h2>
+    <button class="btn-sound iconbtn">🔊</button>
+  </header>
+  <div class="content">
+    <div class="profile-list" id="profile-list"></div>
+  </div>
+</div>
+
+<!-- Museum map -->
+<div class="screen" id="screen-map">
+  <header class="topbar sticky">
+    <button class="iconbtn" onclick="App.play()">👥</button>
+    <div class="map-player grow" id="map-player"></div>
+    <span class="map-stat" id="map-coins"></span>
+    <button class="iconbtn" onclick="App.showLeaderboard()">🏆</button>
+  </header>
+  <div class="content">
+    <button class="btn big green wide" id="btn-continue"></button>
+    <div class="row-btns3">
+      <button class="btn blue" id="btn-daily" onclick="App.showDaily()">📅 Daily</button>
+      <button class="btn blue" onclick="App.showRush()">🏅 Rush</button>
+      <button class="btn blue" onclick="App.showAlbum()">🖼️ Album</button>
+    </div>
+    <div id="wing-list"></div>
+  </div>
+</div>
+
+<!-- The grid -->
+<div class="screen" id="screen-game">
+  <header class="gamebar">
+    <button class="iconbtn small" onclick="App.pause()">⏸</button>
+    <span class="hud grow" id="hud-title"></span>
+    <span class="hud" id="hud-coins">🪙 0</span>
+    <span class="hud" id="hud-found">📋 0/0</span>
+    <span class="hud time" id="hud-time">0s</span>
+  </header>
+  <p class="game-hint" id="game-hint"></p>
+  <div class="game-stage" id="game-stage">
+    <canvas id="cv"></canvas>
+  </div>
+  <div class="word-list" id="word-list"></div>
+  <div class="actionbar">
+    <button class="btn amber" id="btn-hint-letter" onclick="App.hint('letter')">🔤 First letter</button>
+    <button class="btn amber" id="btn-hint-word" onclick="App.hint('word')">🔦 Whole word</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="screen" id="screen-results">
+  <div class="res-inner">
+    <div class="res-emoji" id="res-emoji">🏛️</div>
+    <h2 class="res-title" id="res-title"></h2>
+    <div class="res-stars" id="res-stars"></div>
+    <div class="res-score" id="res-score"></div>
+    <div class="ex" id="res-exhibit" style="display:none"></div>
+    <div class="res-stats" id="res-stats"></div>
+    <p class="res-note" id="res-note"></p>
+    <p class="res-finished" id="res-finished" style="display:none">👑 Every room in the museum, catalogued. The curator would like a word.</p>
+    <div class="res-actions">
+      <button class="btn grey" onclick="App.showMap()">🗺️ Map</button>
+      <button class="btn" id="res-retry" style="display:none"></button>
+      <button class="btn green" id="res-next" style="display:none"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Puzzle -->
+<div class="screen" id="screen-daily">
+  <header class="topbar sticky">
+    <button class="iconbtn" onclick="App.showMap()">←</button>
+    <h2 class="grow">📅 Daily Puzzle</h2>
+    <span class="map-stat" id="daily-date"></span>
+  </header>
+  <div class="content">
+    <p class="nudge">One grid, one go, the same for everybody in the family. Ranked on time — which is what makes the times worth comparing.</p>
+    <div id="daily-body"></div>
+    <h3 class="sec">Today in the museum</h3>
+    <div class="lb-rows" id="daily-rows"></div>
+  </div>
+</div>
+
+<!-- Rush -->
+<div class="screen" id="screen-rush">
+  <header class="topbar sticky">
+    <button class="iconbtn" onclick="App.showMap()">←</button>
+    <h2 class="grow">🏅 Rush</h2>
+    <button class="btn-sound iconbtn">🔊</button>
+  </header>
+  <div class="content">
+    <p class="nudge">Three minutes, one grid after another, as many words as you can. No hints — this is the one that goes on the family board.</p>
+    <div id="rush-body"></div>
+  </div>
+</div>
+
+<!-- Exhibit album -->
+<div class="screen" id="screen-album">
+  <header class="topbar sticky">
+    <button class="iconbtn" onclick="App.showMap()">←</button>
+    <h2 class="grow">🖼️ The Album</h2>
+    <span class="map-stat" id="album-count"></span>
+  </header>
+  <div class="content">
+    <p class="nudge">Every room you finish adds its exhibit here. 🔎 means you also found that room's hidden word.</p>
+    <div id="album-list"></div>
+  </div>
+</div>
+
+<!-- Leaderboard -->
+<div class="screen" id="screen-leaderboard">
+  <header class="topbar sticky">
+    <button class="iconbtn" onclick="App.showMap()">←</button>
+    <h2 class="grow">🏆 The Visitors</h2>
+    <button class="btn-sound iconbtn">🔊</button>
+  </header>
+  <div class="content">
+    <p class="nudge">Ranked on your best Rush, because everybody gets the same three minutes. Stars show how far through the museum you have got.</p>
+    <div class="lb-rows" id="lb-rows"></div>
+  </div>
+</div>
+
+<!-- Pause -->
+<div class="modal" id="modal-pause">
+  <div class="sheet">
+    <h2>⏸ Sitting down</h2>
+    <p>The clock is stopped.</p>
+    <div class="row-btns2">
+      <button class="btn green" onclick="App.resume()">▶️ Carry on</button>
+      <button class="btn blue" onclick="App.restart()">↻ Start again</button>
+    </div>
+    <button class="btn grey wide" onclick="App.quitRoom()">🚪 Back to the map</button>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="modal" id="modal-howto">
+  <div class="sheet howto">
+    <h2>📖 How it works</h2>
+    <p><b>It is a word search</b>, with a museum wrapped round it. Fourteen wings, eight rooms each, and every room you finish puts a real exhibit in your album with a fact on the back of it.</p>
+    <ul class="howto-list">
+      <li><b>Drag</b> across a word from its first letter to its last. Crooked is fine — the selection snaps to the nearest straight line. You can also <b>tap the first letter, then tap the last</b>.</li>
+      <li><b>Either direction counts.</b> If you spot a word backwards, drag it backwards.</li>
+      <li><b>Every room hides one extra word</b> that is not on the card — the curiosity. Nothing tells you what it is. Finding one is worth 🪙25, and it goes in your album. <b>Find it before the last word on the card</b>, because finding that one closes the room.</li>
+      <li><b>Stars:</b> one for finding every word on the card, two for beating par, three for beating par comfortably without buying a hint.</li>
+      <li><b>Hints</b> cost coins, and coins come from finishing rooms and finding curiosities. A hint always points at the word the grid is hiding best.</li>
+      <li><b>📅 Daily</b> is one grid a day, the same for the whole family. <b>🏅 Rush</b> is three minutes and as many words as you can manage — that is the score on the family board.</li>
+    </ul>
+    <button class="btn green wide" onclick="GK.UI.closeModal('modal-howto')">Got it</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- gamekit (vendored from rvenning/gamekit into lib/) -->
+<script src="lib/gk-util.js"></script>
+<script src="lib/gk-audio.js"></script>
+<script src="lib/gk-ui.js"></script>
+<script src="lib/gk-storage.js"></script>
+<script src="lib/gk-profiles.js"></script>
+<script src="lib/gk-pwa.js"></script>
+<script src="lib/gk-fx.js"></script>
+<script src="lib/gk-debug.js"></script>
+<script>
+// Museum juice: light, slow-falling motes rather than grit, and almost no
+// shake — nothing in a gallery should feel like it is being hit.
+const Fx = GK.Fx.configure({
+  grav: 180, poolCap: 460, shakeMax: 6, shakeDecay: 26, shape: "circle",
+  burstSpeed: 120, burstSize: 2.2, textSize: 15, textDy: -32, textCap: 16,
+  font: "'Baloo 2', system-ui, sans-serif",
+});
+const Tween = GK.Tween;
+</script>
+<script src="js/firebase-config.js"></script>
+<!-- content and board logic -->
+<script src="js/rng.js"></script>
+<script src="js/wings.js"></script>
+<script src="js/grid.js"></script>
+<!-- systems -->
+<script src="js/storage.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

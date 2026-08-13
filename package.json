@@ -1,0 +1,9 @@
+{
+  "name": "wonder-museum",
+  "private": true,
+  "description": "Wonder Museum — a word search with fourteen wings and 112 rooms, an exhibit album, a hidden word in every room, and a Daily Puzzle the family shares. Built on gamekit.",
+  "scripts": {
+    "test": "node --test",
+    "icons": "node tools/make-icons.js"
+  }
+}
