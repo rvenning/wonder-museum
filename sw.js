@@ -1,6 +1,6 @@
 // Wonder Museum service worker — network-first, cache fallback.
 // BUMP the cache name on ANY shell change or devices keep serving the old build.
-const CACHE = "wonder-museum-v1";
+const CACHE = "wonder-museum-v2";
 const SHELL = [
   ".",
   "index.html",
